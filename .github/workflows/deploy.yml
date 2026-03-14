@@ -9,25 +9,11 @@ permissions:
   contents: write
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22.12.0"
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build frontend
-        run: node build-pages.mjs
-        env:
-          VITE_SUPABASE_URL: ""
-          VITE_SUPABASE_ANON_KEY: ""
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
@@ -35,4 +21,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist/public
           publish_branch: gh-pages
-          force_orphan: true
+          keep_files: false
