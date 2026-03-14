@@ -1,9 +1,10 @@
-// Script de build para GitHub Pages
-// Usa process.cwd() en vez de import.meta.url para compatibilidad con GitHub Actions
+// build-pages.mjs - GitHub Pages build script
 import { build } from 'vite';
 import { resolve } from 'path';
 
 const root = process.cwd();
+console.log('CWD:', root);
+console.log('Node version:', process.version);
 
 const config = {
   root: resolve(root, 'client'),
@@ -24,8 +25,9 @@ const config = {
 try {
   const react = await import('@vitejs/plugin-react');
   config.plugins = [react.default()];
+  console.log('React plugin loaded OK');
 } catch(e) {
-  console.error('Error loading react plugin:', e.message);
+  console.error('React plugin error:', e.stack || e.message);
   process.exit(1);
 }
 
@@ -33,6 +35,6 @@ try {
   await build(config);
   console.log('Build completado exitosamente');
 } catch(e) {
-  console.error('Build error:', e.message);
+  console.error('Build failed:', e.stack || e.message);
   process.exit(1);
 }
