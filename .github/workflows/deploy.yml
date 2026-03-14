@@ -29,23 +29,23 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Diagnostico
+      - name: Build frontend
         run: |
-          echo "Node: $(node --version)"
-          echo "NPM: $(npm --version)"
-          echo "Vite: $(npx vite --version)"
-          echo "Working dir: $(pwd)"
-          ls -la
-          cat vite.config.ts
-
-      - name: Build frontend (Vite)
-        run: npx vite build --logLevel info
+          set -e
+          echo "::group::Vite build output"
+          ./node_modules/.bin/vite build 2>&1 | tee /tmp/build.log
+          echo "::endgroup::"
+          BUILD_EXIT=${PIPESTATUS[0]}
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo "::error::Vite build failed. Last 50 lines:"
+            tail -50 /tmp/build.log | while IFS= read -r line; do
+              echo "::error::$line"
+            done
+            exit $BUILD_EXIT
+          fi
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-
-      - name: List build output
-        run: ls -la dist/public/ || echo "dist/public no existe"
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
