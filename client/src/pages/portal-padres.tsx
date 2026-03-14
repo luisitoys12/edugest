@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -52,7 +52,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function ScoreBadge({ score }: { score: number | null }) {
-  if (score === null) return <span className="text-muted-foreground text-sm"></span>;
+  if (score === null) return <span className="text-muted-foreground text-sm">—</span>;
   const color = score >= 8 ? "text-green-600 dark:text-green-400" : score >= 6 ? "text-yellow-600 dark:text-yellow-400" : "text-red-600 dark:text-red-400";
   return <span className={`font-bold text-base ${color}`}>{score.toFixed(1)}</span>;
 }
@@ -62,17 +62,17 @@ export default function PortalPadres() {
   const [searchCode, setSearchCode] = useState<string | null>(null);
   const [loggedStudent, setLoggedStudent] = useState<StudentData | null>(null);
 
-  const { data: subjects } = useQuery<Array<{ id: number; name: string; code: string; color: string }>>({
+  const { data: subjects } = useQuery<Array<{ id: number; name: string; code: string; color: string }}>({
     queryKey: ["/api/subjects"],
   });
-  const { data: periods } = useQuery<Array<{ id: number; name: string; order: number }>>({
+  const { data: periods } = useQuery<Array<{ id: number; name: string; order: number }}>({
     queryKey: ["/api/periods"],
   });
-  const { data: announcements } = useQuery<Array<{ id: number; title: string; content: string; isPinned: boolean; publishedAt: string }>>({
+  const { data: announcements } = useQuery<Array<{ id: number; title: string; content: string; isPinned: boolean; publishedAt: string }}>({
     queryKey: ["/api/announcements"],
   });
 
-  const { isFetching, isError, error } = useQuery<StudentData>({
+  const { data: studentData, isFetching, isError, error } = useQuery<StudentData>({
     queryKey: ["/api/students/by-code", searchCode],
     queryFn: async () => {
       const res = await fetch(`/api/students/by-code/${searchCode}`);
@@ -84,8 +84,11 @@ export default function PortalPadres() {
     },
     enabled: !!searchCode,
     retry: false,
-    onSuccess: (data: StudentData) => setLoggedStudent(data),
   });
+
+  useEffect(() => {
+    if (studentData) setLoggedStudent(studentData);
+  }, [studentData]);
 
   const handleSearch = () => {
     const code = inputCode.trim().toUpperCase();
@@ -100,24 +103,27 @@ export default function PortalPadres() {
     setInputCode("");
   };
 
+  // ── Login screen ──────────────────────────────────────────
   if (!loggedStudent) {
     return (
       <div className="min-h-full flex flex-col items-center justify-center p-6 bg-background">
         <div className="w-full max-w-sm space-y-6">
+          {/* Logo */}
           <div className="flex flex-col items-center gap-3 text-center">
             <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center shadow-lg">
               <GraduationCap className="w-7 h-7 text-primary-foreground" />
             </div>
             <div>
               <h1 className="text-xl font-display font-bold text-foreground">Portal para Padres</h1>
-              <p className="text-sm text-muted-foreground mt-1">Ingresa el codigo unico del alumno para ver su informacion.</p>
+              <p className="text-sm text-muted-foreground mt-1">Ingresa el código único del alumno para ver su información.</p>
             </div>
           </div>
 
+          {/* Card de acceso */}
           <Card className="border-border shadow-sm">
             <CardContent className="p-6 space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Codigo de alumno</label>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Código de alumno</label>
                 <div className="flex gap-2">
                   <Input
                     placeholder="Ej: BJ-0001"
@@ -136,12 +142,12 @@ export default function PortalPadres() {
               {isError && (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  <span>{(error as Error)?.message ?? "Codigo no encontrado"}</span>
+                  <span>{(error as Error)?.message ?? "Código no encontrado"}</span>
                 </div>
               )}
 
               <p className="text-[11px] text-muted-foreground text-center">
-                Los codigos son proporcionados por la escuela. Formato: <span className="font-mono font-semibold">BJ-0001</span>
+                Los códigos son proporcionados por la escuela. Formato: <span className="font-mono font-semibold">BJ-0001</span>
               </p>
             </CardContent>
           </Card>
@@ -152,17 +158,21 @@ export default function PortalPadres() {
     );
   }
 
+  // ── Portal del alumno ──────────────────────────────────────────────────────
   const { student, grades, attendance } = loggedStudent;
 
+  // Agrupar calificaciones por materia + período
   const gradesBySubject: Record<number, Record<number, number | null>> = {};
   grades.forEach(g => {
     if (!gradesBySubject[g.subjectId]) gradesBySubject[g.subjectId] = {};
     gradesBySubject[g.subjectId][g.periodId] = g.score;
   });
 
+  // Promedio general
   const allScores = grades.map(g => g.score).filter((s): s is number => s !== null);
-  const avgScore = allScores.length ? (allScores.reduce((a, b) => a + b, 0) / allScores.length).toFixed(1) : "";
+  const avgScore = allScores.length ? (allScores.reduce((a, b) => a + b, 0) / allScores.length).toFixed(1) : "—";
 
+  // Estadísticas de asistencia
   const attTotal = attendance.length;
   const attPresent = attendance.filter(a => a.status === "present").length;
   const attAbsent = attendance.filter(a => a.status === "absent").length;
@@ -173,6 +183,7 @@ export default function PortalPadres() {
 
   return (
     <div className="p-6 space-y-6 max-w-screen-lg mx-auto">
+      {/* Header del alumno */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
@@ -191,6 +202,7 @@ export default function PortalPadres() {
         </Button>
       </div>
 
+      {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: "Promedio general", value: avgScore, icon: BookOpen, color: "text-primary" },
@@ -217,6 +229,7 @@ export default function PortalPadres() {
           <TabsTrigger value="avisos" className="gap-1.5 text-xs"><Megaphone className="w-3.5 h-3.5" />Avisos</TabsTrigger>
         </TabsList>
 
+        {/* ── Tab calificaciones ──────────────────────────────────────── */}
         <TabsContent value="calificaciones">
           <Card>
             <CardHeader className="pb-3">
@@ -260,18 +273,20 @@ export default function PortalPadres() {
                 </tbody>
               </table>
               {grades.length === 0 && (
-                <div className="p-8 text-center text-sm text-muted-foreground">No hay calificaciones registradas aun.</div>
+                <div className="p-8 text-center text-sm text-muted-foreground">No hay calificaciones registradas aún.</div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* ── Tab asistencia ──────────────────────────────────────────── */}
         <TabsContent value="asistencia">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-display font-semibold">Registro de asistencia</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Resumen visual */}
               <div className="flex items-center gap-4 flex-wrap">
                 <div className="flex-1 min-w-[160px]">
                   <div className="flex justify-between text-xs text-muted-foreground mb-1">
@@ -288,6 +303,7 @@ export default function PortalPadres() {
                   <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-500" />{attLate} ret.</span>
                 </div>
               </div>
+              {/* Lista */}
               <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
                 {[...attendance].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(att => (
                   <div key={att.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30">
@@ -305,6 +321,7 @@ export default function PortalPadres() {
           </Card>
         </TabsContent>
 
+        {/* ── Tab avisos ─────────────────────────────────────────────── */}
         <TabsContent value="avisos">
           <div className="space-y-3">
             {(announcements ?? []).map(ann => (

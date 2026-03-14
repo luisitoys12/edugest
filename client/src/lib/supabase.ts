@@ -1,21 +1,15 @@
 /**
- * EduGest - Cliente Supabase
+ * EduGest — Cliente Supabase (Stub)
  *
- * Este archivo configura el cliente de Supabase para uso en produccion.
- * Para activarlo:
- *   1. Copia .env.example -> .env con tus credenciales de Supabase
- *   2. Importa `supabase` donde necesites hacer queries directas
- *   3. Para auth: usa supabase.auth.signIn / signOut
+ * Este archivo es un stub para GitHub Pages / Codespaces.
+ * Para activar Supabase real:
+ *   1. Instala: npm install @supabase/supabase-js
+ *   2. Agrega tus credenciales en .env (ver .env.example)
+ *   3. Reemplaza este stub con la importación real
  *
- * En modo desarrollo (sin credenciales), el sistema usa el storage en memoria.
+ * En modo actual el sistema usa el storage en memoria del servidor Express.
  */
-import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? "";
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY ?? "";
-
-export const supabase = supabaseUrl && supabaseAnonKey
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
-
-export const isSupabaseConfigured = !!supabaseUrl && !!supabaseAnonKey;
+// Stub — no importa @supabase/supabase-js para evitar dependencia en GitHub Pages
+export const supabase = null;
+export const isSupabaseConfigured = false;

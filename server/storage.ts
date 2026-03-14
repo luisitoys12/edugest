@@ -15,17 +15,20 @@ import {
 } from "@shared/schema";
 
 export interface IStorage {
+  // Plans
   getPlans(): Promise<Plan[]>;
   getPlan(id: number): Promise<Plan | undefined>;
   createPlan(plan: InsertPlan): Promise<Plan>;
   updatePlan(id: number, plan: Partial<InsertPlan>): Promise<Plan | undefined>;
 
+  // Schools
   getSchools(): Promise<School[]>;
   getSchool(id: number): Promise<School | undefined>;
   createSchool(school: InsertSchool): Promise<School>;
   updateSchool(id: number, school: Partial<InsertSchool>): Promise<School | undefined>;
   deleteSchool(id: number): Promise<boolean>;
 
+  // Users
   getUsers(schoolId?: number): Promise<User[]>;
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
@@ -33,61 +36,72 @@ export interface IStorage {
   updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
   deleteUser(id: number): Promise<boolean>;
 
+  // Cycles
   getCycles(schoolId: number): Promise<Cycle[]>;
   getCycle(id: number): Promise<Cycle | undefined>;
   createCycle(cycle: InsertCycle): Promise<Cycle>;
   updateCycle(id: number, cycle: Partial<InsertCycle>): Promise<Cycle | undefined>;
   deleteCycle(id: number): Promise<boolean>;
 
+  // Grades (academic levels)
   getGrades(schoolId: number): Promise<Grade[]>;
   getGrade(id: number): Promise<Grade | undefined>;
   createGrade(grade: InsertGrade): Promise<Grade>;
   updateGrade(id: number, grade: Partial<InsertGrade>): Promise<Grade | undefined>;
   deleteGrade(id: number): Promise<boolean>;
 
+  // Groups
   getGroups(schoolId: number, cycleId?: number): Promise<Group[]>;
   getGroup(id: number): Promise<Group | undefined>;
   createGroup(group: InsertGroup): Promise<Group>;
   updateGroup(id: number, group: Partial<InsertGroup>): Promise<Group | undefined>;
   deleteGroup(id: number): Promise<boolean>;
 
+  // Subjects
   getSubjects(schoolId: number): Promise<Subject[]>;
   getSubject(id: number): Promise<Subject | undefined>;
   createSubject(subject: InsertSubject): Promise<Subject>;
   updateSubject(id: number, subject: Partial<InsertSubject>): Promise<Subject | undefined>;
   deleteSubject(id: number): Promise<boolean>;
 
+  // Assignments
   getAssignments(schoolId: number, groupId?: number): Promise<Assignment[]>;
   getAssignment(id: number): Promise<Assignment | undefined>;
   createAssignment(assignment: InsertAssignment): Promise<Assignment>;
   deleteAssignment(id: number): Promise<boolean>;
 
+  // Enrollments
   getEnrollments(schoolId: number, groupId?: number): Promise<Enrollment[]>;
   getStudentEnrollments(studentId: number): Promise<Enrollment[]>;
   createEnrollment(enrollment: InsertEnrollment): Promise<Enrollment>;
   deleteEnrollment(id: number): Promise<boolean>;
 
+  // Periods
   getPeriods(schoolId: number, cycleId?: number): Promise<Period[]>;
   getPeriod(id: number): Promise<Period | undefined>;
   createPeriod(period: InsertPeriod): Promise<Period>;
   updatePeriod(id: number, period: Partial<InsertPeriod>): Promise<Period | undefined>;
   deletePeriod(id: number): Promise<boolean>;
 
+  // Grade Records
   getGradeRecords(schoolId: number, groupId?: number, periodId?: number): Promise<GradeRecord[]>;
   getStudentGrades(studentId: number, cycleId?: number): Promise<GradeRecord[]>;
   upsertGradeRecord(record: InsertGradeRecord): Promise<GradeRecord>;
   deleteGradeRecord(id: number): Promise<boolean>;
 
+  // Attendance
   getAttendance(schoolId: number, groupId: number, date?: string): Promise<Attendance[]>;
   getStudentAttendance(studentId: number, groupId?: number): Promise<Attendance[]>;
   createAttendance(record: InsertAttendance): Promise<Attendance>;
   updateAttendance(id: number, record: Partial<InsertAttendance>): Promise<Attendance | undefined>;
 
+  // Announcements
   getAnnouncements(schoolId: number): Promise<Announcement[]>;
   createAnnouncement(a: InsertAnnouncement): Promise<Announcement>;
   deleteAnnouncement(id: number): Promise<boolean>;
   updateAnnouncement(id: number, a: Partial<InsertAnnouncement>): Promise<Announcement | undefined>;
 
+  // Stats
   getSchoolStats(schoolId: number): Promise<{
     totalStudents: number;
     totalTeachers: number;
@@ -121,26 +135,31 @@ export class MemStorage implements IStorage {
   }
 
   private seed() {
-    const planBasico: Plan = { id: this.genId(), name: "Basico", maxStudents: 100, maxTeachers: 10, priceMonthly: 299, priceYearly: 2990, features: ["Calificaciones", "Asistencias", "Grupos", "Reportes basicos"], isActive: true };
-    const planPro: Plan = { id: this.genId(), name: "Profesional", maxStudents: 500, maxTeachers: 50, priceMonthly: 799, priceYearly: 7990, features: ["Todo Basico", "Comunicados", "Boletas PDF", "Ciclos multiples", "Soporte prioritario"], isActive: true };
-    const planEnt: Plan = { id: this.genId(), name: "Enterprise", maxStudents: 99999, maxTeachers: 99999, priceMonthly: 1999, priceYearly: 19990, features: ["Todo Profesional", "Multiples sedes", "API acceso", "SSO/LDAP", "Gestor de cuenta", "Personalizacion"], isActive: true };
+    // Plans
+    const planBasico: Plan = { id: this.genId(), name: "Básico", maxStudents: 100, maxTeachers: 10, priceMonthly: 299, priceYearly: 2990, features: ["Calificaciones", "Asistencias", "Grupos", "Reportes básicos"], isActive: true };
+    const planPro: Plan = { id: this.genId(), name: "Profesional", maxStudents: 500, maxTeachers: 50, priceMonthly: 799, priceYearly: 7990, features: ["Todo Básico", "Comunicados", "Boletas PDF", "Ciclos múltiples", "Soporte prioritario"], isActive: true };
+    const planEnt: Plan = { id: this.genId(), name: "Enterprise", maxStudents: 99999, maxTeachers: 99999, priceMonthly: 1999, priceYearly: 19990, features: ["Todo Profesional", "Múltiples sedes", "API acceso", "SSO/LDAP", "Gestor de cuenta", "Personalización"], isActive: true };
     [planBasico, planPro, planEnt].forEach(p => this.plans.set(p.id, p));
 
-    const school: School = { id: this.genId(), name: "Colegio Benito Juarez", cct: "11DPR0001X", address: "Av. Insurgentes 123, Irapuato, Gto.", phone: "+52 462 123 4567", email: "admin@colegiojuarez.edu.mx", logoUrl: null, planId: planPro.id, planExpiresAt: new Date("2026-12-31"), isActive: true, createdAt: new Date() };
+    // School
+    const school: School = { id: this.genId(), name: "Colegio Benito Juárez", cct: "11DPR0001X", address: "Av. Insurgentes 123, Irapuato, Gto.", phone: "+52 462 123 4567", email: "admin@colegiojuarez.edu.mx", logoUrl: null, planId: planPro.id, planExpiresAt: new Date("2026-12-31"), isActive: true, createdAt: new Date() };
     this.schools.set(school.id, school);
     const schoolId = school.id;
 
+    // Cycle
     const cycle: Cycle = { id: this.genId(), schoolId, name: "2025-2026", startDate: new Date("2025-08-25"), endDate: new Date("2026-06-30"), isCurrent: true };
     this.cycles.set(cycle.id, cycle);
     const cycleId = cycle.id;
 
-    const gradeNames = ["1", "2", "3", "4", "5", "6"];
+    // Grade levels
+    const gradeNames = ["1°", "2°", "3°", "4°", "5°", "6°"];
     const gradeObjs: Grade[] = gradeNames.map((name, i) => {
       const g: Grade = { id: this.genId(), schoolId, name, level: "primaria", order: i + 1 };
       this.gradesLevels.set(g.id, g);
       return g;
     });
 
+    // Groups
     const groupData: { gradeIdx: number; name: string; }[] = [
       { gradeIdx: 0, name: "A" }, { gradeIdx: 0, name: "B" },
       { gradeIdx: 1, name: "A" }, { gradeIdx: 1, name: "B" },
@@ -155,14 +174,15 @@ export class MemStorage implements IStorage {
       return g;
     });
 
+    // Subjects
     const subjectData = [
-      { name: "Espanol", code: "ESP", color: "#4f98a3" },
-      { name: "Matematicas", code: "MAT", color: "#e8613a" },
+      { name: "Español", code: "ESP", color: "#4f98a3" },
+      { name: "Matemáticas", code: "MAT", color: "#e8613a" },
       { name: "Ciencias Naturales", code: "CN", color: "#6daa45" },
       { name: "Historia", code: "HIS", color: "#d19900" },
-      { name: "Geografia", code: "GEO", color: "#7a39bb" },
-      { name: "Educacion Fisica", code: "EF", color: "#006494" },
-      { name: "Ingles", code: "ING", color: "#a13544" },
+      { name: "Geografía", code: "GEO", color: "#7a39bb" },
+      { name: "Educación Física", code: "EF", color: "#006494" },
+      { name: "Inglés", code: "ING", color: "#a13544" },
       { name: "Artes", code: "ART", color: "#da7101" },
     ];
     const subjectObjs: Subject[] = subjectData.map(sd => {
@@ -171,38 +191,44 @@ export class MemStorage implements IStorage {
       return s;
     });
 
-    const teacherNames = ["Profra. Ana Garcia", "Prof. Carlos Lopez", "Profra. Maria Rodriguez", "Prof. Juan Martinez", "Profra. Laura Hernandez", "Prof. Roberto Sanchez"];
+    // Teachers
+    const teacherNames = ["Profra. Ana García", "Prof. Carlos López", "Profra. María Rodríguez", "Prof. Juan Martínez", "Profra. Laura Hernández", "Prof. Roberto Sánchez"];
     const teacherObjs: User[] = teacherNames.map((name, i) => {
       const u: User = { id: this.genId(), schoolId, name, email: `teacher${i + 1}@colegiojuarez.edu.mx`, password: "hashed", role: "teacher", accessCode: null, avatarUrl: null, isActive: true, createdAt: new Date() };
       this.users.set(u.id, u);
       return u;
     });
 
+    // Admin user
     const admin: User = { id: this.genId(), schoolId, name: "Director Luis Reyes", email: "admin@colegiojuarez.edu.mx", password: "hashed", role: "admin", accessCode: null, avatarUrl: null, isActive: true, createdAt: new Date() };
     this.users.set(admin.id, admin);
 
-    const firstNames = ["Sofia", "Diego", "Valentina", "Mateo", "Isabella", "Sebastian", "Camila", "Nicolas", "Lucia", "Santiago", "Emma", "Alejandro", "Martina", "Daniel", "Valeria", "Emilio", "Paula", "Andres", "Fernanda", "Rodrigo", "Mariana", "Gabriel", "Ana", "Javier", "Daniela", "Miguel", "Natalia", "Carlos", "Elena", "Fernando"];
-    const lastNames = ["Garcia", "Lopez", "Martinez", "Sanchez", "Rodriguez", "Hernandez", "Gonzalez", "Torres", "Ramirez", "Flores", "Diaz", "Morales", "Castro", "Reyes", "Mendoza"];
-
+    // Students
+    const firstNames = ["Sofía", "Diego", "Valentina", "Mateo", "Isabella", "Sebastián", "Camila", "Nicolás", "Lucía", "Santiago", "Emma", "Alejandro", "Martina", "Daniel", "Valeria", "Emilio", "Paula", "Andrés", "Fernanda", "Rodrigo", "Mariana", "Gabriel", "Ana", "Javier", "Daniela", "Miguel", "Natalia", "Carlos", "Elena", "Fernando"];
+    const lastNames = ["García", "López", "Martínez", "Sánchez", "Rodríguez", "Hernández", "González", "Torres", "Ramírez", "Flores", "Díaz", "Morales", "Castro", "Reyes", "Mendoza"];
+    
     const studentObjs: User[] = [];
     for (let i = 0; i < 50; i++) {
       const name = `${firstNames[i % firstNames.length]} ${lastNames[i % lastNames.length]}`;
-      const accessCode = `BJ-${String(i + 1).padStart(4, "0")}`;
+      const accessCode = `BJ-${String(i + 1).padStart(4, "0")}`; // BJ-0001 ... BJ-0050
       const u: User = { id: this.genId(), schoolId, name, email: `student${i + 1}@colegiojuarez.edu.mx`, password: "hashed", role: "student", accessCode, avatarUrl: null, isActive: true, createdAt: new Date() };
       this.users.set(u.id, u);
       studentObjs.push(u);
     }
 
+    // Enroll students in groups (5 per group)
     groupObjs.forEach((group, gi) => {
       const start = gi * 5;
       for (let si = start; si < start + 5 && si < studentObjs.length; si++) {
         const e: Enrollment = { id: this.genId(), schoolId, studentId: studentObjs[si].id, groupId: group.id, cycleId, enrolledAt: new Date() };
         this.enrollments.set(e.id, e);
       }
+      // Assign tutor
       const upd = { ...group, tutorId: teacherObjs[gi % teacherObjs.length].id };
       this.groups.set(group.id, upd);
     });
 
+    // Assignments (teacher → group → subject)
     subjectObjs.forEach((subj, si) => {
       groupObjs.forEach((group, gi) => {
         const a: Assignment = { id: this.genId(), schoolId, teacherId: teacherObjs[(si + gi) % teacherObjs.length].id, groupId: group.id, subjectId: subj.id, cycleId };
@@ -210,6 +236,7 @@ export class MemStorage implements IStorage {
       });
     });
 
+    // Periods
     const periodData = [
       { name: "Parcial 1", order: 1, isOpen: false },
       { name: "Parcial 2", order: 2, isOpen: false },
@@ -222,6 +249,7 @@ export class MemStorage implements IStorage {
       return p;
     });
 
+    // Grade records — generate realistic grades
     const enrollmentList = Array.from(this.enrollments.values()).filter(e => e.schoolId === schoolId);
     enrollmentList.forEach(enr => {
       subjectObjs.forEach(subj => {
@@ -234,6 +262,7 @@ export class MemStorage implements IStorage {
       });
     });
 
+    // Attendance (last 10 days)
     enrollmentList.slice(0, 25).forEach(enr => {
       for (let d = 0; d < 10; d++) {
         const date = new Date();
@@ -245,10 +274,11 @@ export class MemStorage implements IStorage {
       }
     });
 
+    // Announcements
     const annData = [
-      { title: "Entrega de boletas Parcial 2", content: "Se recuerda que la entrega de boletas del segundo parcial se realizara el proximo viernes.", isPinned: true },
-      { title: "Junta de consejo tecnico", content: "Se convoca a todos los docentes a la junta de consejo tecnico del viernes 20 de marzo a las 16:00 hrs.", isPinned: false },
-      { title: "Semana Deportiva 2026", content: "Del 25 al 29 de marzo se llevara a cabo la semana deportiva anual.", isPinned: false },
+      { title: "Entrega de boletas Parcial 2", content: "Se recuerda que la entrega de boletas del segundo parcial se realizará el próximo viernes. Los padres de familia deben presentarse en horario de 8:00 a 13:00 hrs.", isPinned: true },
+      { title: "Junta de consejo técnico", content: "Se convoca a todos los docentes a la junta de consejo técnico del viernes 20 de marzo a las 16:00 hrs en el auditorio.", isPinned: false },
+      { title: "Semana Deportiva 2026", content: "Del 25 al 29 de marzo se llevará a cabo la semana deportiva anual. Los alumnos deben traer ropa deportiva esos días.", isPinned: false },
     ];
     annData.forEach(ad => {
       const a: Announcement = { id: this.genId(), schoolId, authorId: admin.id, title: ad.title, content: ad.content, targetRole: "all", targetGroupId: null, publishedAt: new Date(), isPinned: ad.isPinned };
@@ -256,17 +286,20 @@ export class MemStorage implements IStorage {
     });
   }
 
+  // Plans
   async getPlans() { return Array.from(this.plans.values()); }
   async getPlan(id: number) { return this.plans.get(id); }
   async createPlan(plan: InsertPlan) { const p = { ...plan, id: this.genId() } as Plan; this.plans.set(p.id, p); return p; }
   async updatePlan(id: number, plan: Partial<InsertPlan>) { const ex = this.plans.get(id); if (!ex) return undefined; const upd = { ...ex, ...plan }; this.plans.set(id, upd); return upd; }
 
+  // Schools
   async getSchools() { return Array.from(this.schools.values()); }
   async getSchool(id: number) { return this.schools.get(id); }
   async createSchool(school: InsertSchool) { const s = { ...school, id: this.genId(), createdAt: new Date() } as School; this.schools.set(s.id, s); return s; }
   async updateSchool(id: number, school: Partial<InsertSchool>) { const ex = this.schools.get(id); if (!ex) return undefined; const upd = { ...ex, ...school }; this.schools.set(id, upd); return upd; }
   async deleteSchool(id: number) { return this.schools.delete(id); }
 
+  // Users
   async getUsers(schoolId?: number) {
     const all = Array.from(this.users.values());
     return schoolId !== undefined ? all.filter(u => u.schoolId === schoolId) : all;
@@ -277,18 +310,21 @@ export class MemStorage implements IStorage {
   async updateUser(id: number, user: Partial<InsertUser>) { const ex = this.users.get(id); if (!ex) return undefined; const upd = { ...ex, ...user }; this.users.set(id, upd); return upd; }
   async deleteUser(id: number) { return this.users.delete(id); }
 
+  // Cycles
   async getCycles(schoolId: number) { return Array.from(this.cycles.values()).filter(c => c.schoolId === schoolId); }
   async getCycle(id: number) { return this.cycles.get(id); }
   async createCycle(cycle: InsertCycle) { const c = { ...cycle, id: this.genId() } as Cycle; this.cycles.set(c.id, c); return c; }
   async updateCycle(id: number, cycle: Partial<InsertCycle>) { const ex = this.cycles.get(id); if (!ex) return undefined; const upd = { ...ex, ...cycle }; this.cycles.set(id, upd); return upd; }
   async deleteCycle(id: number) { return this.cycles.delete(id); }
 
+  // Grades (levels)
   async getGrades(schoolId: number) { return Array.from(this.gradesLevels.values()).filter(g => g.schoolId === schoolId).sort((a, b) => a.order - b.order); }
   async getGrade(id: number) { return this.gradesLevels.get(id); }
   async createGrade(grade: InsertGrade) { const g = { ...grade, id: this.genId() } as Grade; this.gradesLevels.set(g.id, g); return g; }
   async updateGrade(id: number, grade: Partial<InsertGrade>) { const ex = this.gradesLevels.get(id); if (!ex) return undefined; const upd = { ...ex, ...grade }; this.gradesLevels.set(id, upd); return upd; }
   async deleteGrade(id: number) { return this.gradesLevels.delete(id); }
 
+  // Groups
   async getGroups(schoolId: number, cycleId?: number) {
     return Array.from(this.groups.values()).filter(g => g.schoolId === schoolId && (cycleId === undefined || g.cycleId === cycleId));
   }
@@ -297,12 +333,14 @@ export class MemStorage implements IStorage {
   async updateGroup(id: number, group: Partial<InsertGroup>) { const ex = this.groups.get(id); if (!ex) return undefined; const upd = { ...ex, ...group }; this.groups.set(id, upd); return upd; }
   async deleteGroup(id: number) { return this.groups.delete(id); }
 
+  // Subjects
   async getSubjects(schoolId: number) { return Array.from(this.subjects.values()).filter(s => s.schoolId === schoolId); }
   async getSubject(id: number) { return this.subjects.get(id); }
   async createSubject(subject: InsertSubject) { const s = { ...subject, id: this.genId() } as Subject; this.subjects.set(s.id, s); return s; }
   async updateSubject(id: number, subject: Partial<InsertSubject>) { const ex = this.subjects.get(id); if (!ex) return undefined; const upd = { ...ex, ...subject }; this.subjects.set(id, upd); return upd; }
   async deleteSubject(id: number) { return this.subjects.delete(id); }
 
+  // Assignments
   async getAssignments(schoolId: number, groupId?: number) {
     return Array.from(this.assignments.values()).filter(a => a.schoolId === schoolId && (groupId === undefined || a.groupId === groupId));
   }
@@ -310,6 +348,7 @@ export class MemStorage implements IStorage {
   async createAssignment(assignment: InsertAssignment) { const a = { ...assignment, id: this.genId() } as Assignment; this.assignments.set(a.id, a); return a; }
   async deleteAssignment(id: number) { return this.assignments.delete(id); }
 
+  // Enrollments
   async getEnrollments(schoolId: number, groupId?: number) {
     return Array.from(this.enrollments.values()).filter(e => e.schoolId === schoolId && (groupId === undefined || e.groupId === groupId));
   }
@@ -317,6 +356,7 @@ export class MemStorage implements IStorage {
   async createEnrollment(enrollment: InsertEnrollment) { const e = { ...enrollment, id: this.genId(), enrolledAt: new Date() } as Enrollment; this.enrollments.set(e.id, e); return e; }
   async deleteEnrollment(id: number) { return this.enrollments.delete(id); }
 
+  // Periods
   async getPeriods(schoolId: number, cycleId?: number) {
     return Array.from(this.periods.values()).filter(p => p.schoolId === schoolId && (cycleId === undefined || p.cycleId === cycleId)).sort((a, b) => a.order - b.order);
   }
@@ -325,6 +365,7 @@ export class MemStorage implements IStorage {
   async updatePeriod(id: number, period: Partial<InsertPeriod>) { const ex = this.periods.get(id); if (!ex) return undefined; const upd = { ...ex, ...period }; this.periods.set(id, upd); return upd; }
   async deletePeriod(id: number) { return this.periods.delete(id); }
 
+  // Grade Records
   async getGradeRecords(schoolId: number, groupId?: number, periodId?: number) {
     return Array.from(this.gradeRecords.values()).filter(r =>
       r.schoolId === schoolId &&
@@ -350,6 +391,7 @@ export class MemStorage implements IStorage {
   }
   async deleteGradeRecord(id: number) { return this.gradeRecords.delete(id); }
 
+  // Attendance
   async getAttendance(schoolId: number, groupId: number, date?: string) {
     return Array.from(this.attendanceRecords.values()).filter(a => {
       if (a.schoolId !== schoolId || a.groupId !== groupId) return false;
@@ -363,11 +405,13 @@ export class MemStorage implements IStorage {
   async createAttendance(record: InsertAttendance) { const a = { ...record, id: this.genId() } as Attendance; this.attendanceRecords.set(a.id, a); return a; }
   async updateAttendance(id: number, record: Partial<InsertAttendance>) { const ex = this.attendanceRecords.get(id); if (!ex) return undefined; const upd = { ...ex, ...record }; this.attendanceRecords.set(id, upd); return upd; }
 
+  // Announcements
   async getAnnouncements(schoolId: number) { return Array.from(this.announcementsData.values()).filter(a => a.schoolId === schoolId).sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0)); }
   async createAnnouncement(a: InsertAnnouncement) { const ann = { ...a, id: this.genId(), publishedAt: new Date() } as Announcement; this.announcementsData.set(ann.id, ann); return ann; }
   async deleteAnnouncement(id: number) { return this.announcementsData.delete(id); }
   async updateAnnouncement(id: number, a: Partial<InsertAnnouncement>) { const ex = this.announcementsData.get(id); if (!ex) return undefined; const upd = { ...ex, ...a }; this.announcementsData.set(id, upd); return upd; }
 
+  // Stats
   async getSchoolStats(schoolId: number) {
     const schoolUsers = Array.from(this.users.values()).filter(u => u.schoolId === schoolId && u.isActive);
     const totalStudents = schoolUsers.filter(u => u.role === "student").length;
