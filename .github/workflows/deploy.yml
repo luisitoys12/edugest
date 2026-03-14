@@ -24,11 +24,7 @@ jobs:
         run: npm install
 
       - name: Build frontend
-        run: |
-          echo "Building EduGest..."
-          NODE_ENV=production ./node_modules/.bin/vite build
-          echo "Build complete!"
-          ls -la dist/public/
+        run: node build-pages.mjs
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
@@ -40,4 +36,3 @@ jobs:
           publish_dir: ./dist/public
           publish_branch: gh-pages
           force_orphan: true
-          keep_files: false
